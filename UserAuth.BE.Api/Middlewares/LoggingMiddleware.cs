@@ -11,9 +11,20 @@
 
         public async Task InvokeAsync(HttpContext context)
         {
-            Console.WriteLine($"Request: {context.Request.Method} {context.Request.Path}");
+            var logFilePath = Path.Combine(Directory.GetCurrentDirectory(), "logs", "log.txt");
+
+            if (!Directory.Exists(Path.GetDirectoryName(logFilePath)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(logFilePath));
+            }
+
+            var requestLog = $"{DateTime.UtcNow}: Request: {context.Request.Method} {context.Request.Path} {context.Request.Body}{Environment.NewLine}";
+            await File.AppendAllTextAsync(logFilePath, requestLog);
+
             await _next(context);
-            Console.WriteLine($"Response: {context.Response.StatusCode}");
+
+            var responseLog = $"{DateTime.UtcNow}: Response: {context.Response.StatusCode}{context.Response.Body}{Environment.NewLine}";
+            await File.AppendAllTextAsync(logFilePath, responseLog);
         }
     }
 }
